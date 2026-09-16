@@ -9,7 +9,7 @@
 #                                      PROMPTS_ALLOWED_SIGNUPS containing @$ALLOWED_DOMAIN: tests member sign-up
 #   ALLOWED_DOMAIN                     the allowed domain for that phase (default railway-smoke.test)
 #   CRON_SECRET_FILE                   a file holding CRON_SECRET, to check the credit reset endpoint accepts it
-# Rerunnable: every account and prompt it creates has a unique name. Secrets are read from files, never printed.
+# Rerunnable: every account and prompt it creates has a unique name and content (upstream refuses near-duplicates). Secrets are read from files, never printed.
 set -euo pipefail
 REPO_ROOT=$(cd "$(dirname "$0")/.." && pwd); export REPO_ROOT
 [ $# -ge 1 ] || { sed -n '3,13p' "$0"; exit 2; }
@@ -52,7 +52,7 @@ assert_eq "owner is ADMIN" "ADMIN" "$(jq -r '.user.role' <<<"$(session_json "$TE
 assert_contains "the session cookie is Secure over HTTPS" '__Secure-authjs.session-token' "$(cat "$TEST_TMP/owner.jar")"
 
 section "prompts"
-r=$(api POST /api/prompts "$TEST_TMP/owner.jar" "$(jq -nc --arg t "Railway live private $RUN" '{title:$t, content:"Act as a careful editor and rewrite the following private notes as three clear bullet points for the Railway live test.", type:"TEXT", tagIds:[], isPrivate:true}')")
+r=$(api POST /api/prompts "$TEST_TMP/owner.jar" "$(jq -nc --arg t "Railway live private $RUN" '{title:$t, content:("Act as a careful editor and rewrite the following private notes as three clear bullet points, run " + $t), type:"TEXT", tagIds:[], isPrivate:true}')")
 assert_eq "owner creates a private prompt" "200" "$(status_of "$r")"
 private_id=$(jq -r '.id // empty' <<<"$(body_of "$r")")
 [ -n "$private_id" ] || die "no prompt id returned"

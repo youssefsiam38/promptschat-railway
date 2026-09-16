@@ -16,6 +16,15 @@ first start it migrates the database, creates your admin account from the e-mail
 prompts.chat collection (about 2,000 prompts) from the image. Sign-up stays closed until you list the addresses or
 domains allowed to join, and that is enforced in the database for e-mail and GitHub or Google sign-ins alike.
 
+## Why Deploy prompts.chat on Railway?
+
+Railway is a singular platform to deploy your infrastructure stack. Railway will host your
+infrastructure so you don't have to deal with configuration, while allowing you to vertically and
+horizontally scale it.
+
+By deploying prompts.chat on Railway, you are one step closer to supporting a complete full-stack application
+with minimal burden. Host your servers, databases, AI agents, and more on Railway.
+
 ## Common Use Cases
 
 - A team prompt library with private prompts and review through change requests.
@@ -48,12 +57,3 @@ admin APIs, MCP search, closed and allowlisted sign-up, and a redeploy keeping e
 
 The deploy form asks for `OWNER_EMAIL`. Copy `OWNER_PASSWORD` from the app service's variables and sign in on the
 app's domain.
-
-## Why Deploy prompts.chat on Railway?
-
-Railway is a singular platform to deploy your infrastructure stack. Railway will host your
-infrastructure so you don't have to deal with configuration, while allowing you to vertically and
-horizontally scale it.
-
-By deploying prompts.chat on Railway, you are one step closer to supporting a complete full-stack application
-with minimal burden. Host your servers, databases, AI agents, and more on Railway.
