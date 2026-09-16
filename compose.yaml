@@ -1,0 +1,58 @@
+# Local test topology. Mirrors the Railway service graph:
+#   db   -> PostgreSQL 17 (own volume, private)
+#   app  -> public prompts.chat (wrapper image; stateless, everything lives in the database)
+name: promptschat-railway-test
+
+networks:
+  default:
+    enable_ipv6: true
+
+services:
+  db:
+    image: docker.io/library/postgres:17.11-bookworm@sha256:051f7b7b3abdd564d5d1bd1e8c4b9c1b6e77087d1dd22020ede611c096a272e0
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: prompts
+      POSTGRES_USER: prompts
+      POSTGRES_PASSWORD: local-test-only-postgres-password
+      # Railway volumes hold lost+found at their root, so the data lives one level down, as on Railway.
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U prompts -d prompts']
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  app:
+    # Built from this repository. CI and the Railway template use the published GHCR image instead.
+    build:
+      context: .
+      dockerfile: images/app/Dockerfile
+      args:
+        WRAPPER_VERSION: ${WRAPPER_VERSION:-0.0.0-local}
+        VCS_REF: ${VCS_REF:-local}
+    image: ${PROMPTSCHAT_RAILWAY_IMAGE:-promptschat-railway:local}
+    restart: unless-stopped
+    depends_on:
+      db: { condition: service_healthy }
+    environment:
+      PORT: '3000'
+      DATABASE_URL: postgresql://prompts:local-test-only-postgres-password@db:5432/prompts?schema=public
+      AUTH_SECRET: local-test-only-auth-secret-0123456789abcdef0123456789
+      AUTH_URL: http://localhost:${PROMPTSCHAT_TEST_PORT:-13700}
+      CRON_SECRET: local-test-only-cron-secret
+      OWNER_EMAIL: owner@example.test
+      # Tests override these to exercise the password reset and the sign-up policy.
+      OWNER_PASSWORD: ${PROMPTSCHAT_TEST_OWNER_PASSWORD:-local-test-only-owner-password}
+      OWNER_RESET_PASSWORD: ${PROMPTSCHAT_TEST_OWNER_RESET_PASSWORD:-false}
+      PCHAT_NAME: Railway Test Prompts
+      PCHAT_ALLOW_REGISTRATION: ${PROMPTSCHAT_TEST_ALLOW_REGISTRATION:-false}
+      PROMPTS_ALLOWED_SIGNUPS: ${PROMPTSCHAT_TEST_ALLOWED_SIGNUPS:-}
+      PROMPTS_IMPORT_LIBRARY: 'true'
+    ports:
+      - '127.0.0.1:${PROMPTSCHAT_TEST_PORT:-13700}:3000'
+
+volumes:
+  pg:

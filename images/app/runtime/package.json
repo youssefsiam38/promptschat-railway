@@ -1,0 +1,9 @@
+{
+  "name": "promptschat-railway-runtime",
+  "private": true,
+  "description": "What the start-up needs besides the app: Prisma's CLI for migrations, and bcryptjs for the owner's password (the app bundles its own copy). Same versions as the app's lockfile.",
+  "dependencies": {
+    "bcryptjs": "3.0.3",
+    "prisma": "6.19.3"
+  }
+}
